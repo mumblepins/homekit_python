@@ -169,13 +169,15 @@ class Controller(object):
         Accessories can be found via the discover method. The id field is the accessory's for the second parameter.
 
         The required pin is either printed on the accessory or displayed. Must be a string of the form 'XXX-YY-ZZZ'.
+        Prompting for pin can be enabled for devices that have a changeable pin (Ecobee thermostat is one)
+        Set 'pin' to None to enable a prompt after the initial connection is made
 
         Important: no automatic saving of the pairing data is performed. If you don't do this, the information is lost
             and you have to reset the accessory!
 
         :param alias: the alias for the accessory in the controllers data
         :param accessory_id: the accessory's id
-        :param pin: the accessory's pin
+        :param pin: the accessory's pin; if set to None, pairing procedure prompts for pin
         :raises AccessoryNotFoundError: if no accessory with the given id can be found
         :raises AlreadyPairedError: if the alias was already used
         :raises UnavailableError: if the device is already paired

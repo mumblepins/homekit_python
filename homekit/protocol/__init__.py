@@ -15,6 +15,8 @@
 #
 
 import hashlib
+import re
+
 import ed25519
 import hkdf
 from binascii import hexlify
@@ -56,8 +58,11 @@ def perform_pair_setup(connection, pin, ios_pairing_id):
     """
     Performs a pair setup operation as described in chapter 4.7 page 39 ff.
 
+    Prompting for pin can be enabled for devices that have a changeable pin (Ecobee thermostat is one)
+    Set 'pin' to None to enable a prompt after the initial connection is made
+
     :param connection: the http_impl connection to the target accessory
-    :param pin: the setup code from the accessory
+    :param pin: the setup code from the accessory; if set to None, prompts for pin at appropriate step
     :param ios_pairing_id: the id of the simulated ios device
     :return: a dict with the ios device's part of the pairing information
     :raises UnavailableError: if the device is already paired
@@ -100,6 +105,10 @@ def perform_pair_setup(connection, pin, ios_pairing_id):
     assert response_tlv[1][0] == TLV.kTLVType_PublicKey, 'perform_pair_setup: Not a public key'
     assert response_tlv[2][0] == TLV.kTLVType_Salt, 'perform_pair_setup: Not a salt'
 
+    if pin is None:
+        pin = input('Waiting for pin (format is XXX-XX-XXX): ').strip()
+        if not re.fullmatch(r"^\d{3}-\d{2}-\d{3}$", pin):
+            raise AuthenticationError("'{}' is not a valid pin format".format(pin))
     srp_client = SrpClient('Pair-Setup', pin)
     srp_client.set_salt(response_tlv[2][1])
     srp_client.set_server_public_key(response_tlv[1][1])
